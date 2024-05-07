@@ -6,10 +6,7 @@ def alphanumeric(value):
     if not str(value).isalnum():
         raise serializers.ValidationError("Only Alphanumeric Characters are allowed.")
 
-class ShowRoomSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = ShowRoomList
-        fields = "__all__"
+
         
 class CarListSerializer(serializers.ModelSerializer):
     discounted_price = serializers.SerializerMethodField()
@@ -56,3 +53,17 @@ class CarListSerializer(serializers.ModelSerializer):
         if data['name'] == data['description']:
             raise serializers.ValidationError("Name and Description Value Must be different.")
         return data
+
+class ShowRoomSerializer(serializers.ModelSerializer):
+    # Showrooms = CarListSerializer(many=True, read_only=True)
+    # Showrooms = serializers.StringRelatedField(many=True)
+    # Showrooms = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
+    # Showrooms = serializers.HyperlinkedRelatedField(
+    #     many=True,
+    #     read_only=True,
+    #     view_name='car-detail-view'
+    # )
+
+    class Meta:
+        model = ShowRoomList
+        fields = "__all__"
