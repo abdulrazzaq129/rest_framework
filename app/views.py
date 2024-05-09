@@ -2,10 +2,41 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.views import APIView
-from .models import CarList, ShowRoomList
-from .serializers import CarListSerializer, ShowRoomSerializer
+from .models import CarList, ShowRoomList,Review
+from .serializers import CarListSerializer, ShowRoomSerializer,ReviewSerializer
+from rest_framework.authentication import BasicAuthentication,SessionAuthentication
+from rest_framework.permissions import IsAuthenticated,AllowAny,IsAdminUser,DjangoModelPermissions
+from rest_framework import mixins
+from rest_framework import generics
+
+class ReviewRetrieve(mixins.RetrieveModelMixin,generics.GenericAPIView):
+    queryset = Review.objects.all()
+    serializer_class = ReviewSerializer
+
+    def get(self, request, *args, **kwargs):
+        return self.retrieve(request, *args, **kwargs)
+    
+class ReviewList(mixins.ListModelMixin,mixins.CreateModelMixin,generics.GenericAPIView):
+    queryset = Review.objects.all()
+    serializer_class = ReviewSerializer
+
+    authentication_classes = [SessionAuthentication]
+    permission_classes = [DjangoModelPermissions]
+
+    def get(self, request, *args, **kwargs):
+        return self.list(request, *args, **kwargs)
+    
+    def post(self, request, *args, **kwargs):
+        return self.create(request, *args, **kwargs)
+
 
 class ShowroomList(APIView):
+    # authentication_classes = [BasicAuthentication]
+    # permission_classes = [IsAuthenticated]
+    # authentication_classes = [SessionAuthentication]
+    # permission_classes = [IsAuthenticated]
+    # permission_classes = [IsAdminUser]
+
     def get(self, request):
         try:
             showrooms = ShowRoomList.objects.all()
@@ -13,6 +44,7 @@ class ShowroomList(APIView):
             return Response(serializer.data)
         except Exception as e:
             return Response({"error": f"Failed to retrieve showrooms. {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
     def post(self, request):
         serializer = ShowRoomSerializer(data=request.data)
         if serializer.is_valid():
@@ -21,6 +53,7 @@ class ShowroomList(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class ShowroomDetail(APIView):
+    
     def get(self, request, pk):
         try:
             showroom = ShowRoomList.objects.get(pk=pk)

@@ -6,4 +6,6 @@ urlpatterns = [
     path("cars/<int:pk>/",views.car_detail_view, name="car-detail-view"),
     path('showroom/',views.ShowroomList.as_view(), name="showroom-list-view"),
     path('showroom/<int:pk>/',views.ShowroomDetail.as_view(), name='showroom-detail-view'),
+    path('review/', views.ReviewList.as_view(), name='review-list'),
+    path('review/<int:pk>/', views.ReviewRetrieve.as_view(), name='review-retrieve')
 ]
