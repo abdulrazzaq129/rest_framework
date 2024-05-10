@@ -8,9 +8,11 @@ def alphanumeric(value):
 
 
 class ReviewSerializer(serializers.ModelSerializer):
+    user = serializers.StringRelatedField(read_only=True)
     class Meta:
         model = Review
-        fields = "__all__"
+        exclude = ('car',)
+        # fields = "__all__"
 class CarListSerializer(serializers.ModelSerializer):
     discounted_price = serializers.SerializerMethodField()
     Reviews = ReviewSerializer(many=True, read_only=True) 
