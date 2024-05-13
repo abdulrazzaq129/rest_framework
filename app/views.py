@@ -8,6 +8,7 @@ from rest_framework.authentication import BasicAuthentication,SessionAuthenticat
 from rest_framework.permissions import IsAuthenticated,AllowAny,IsAdminUser,DjangoModelPermissions
 from rest_framework import generics
 from .permissions import AdminOrReadOnlyPermission,ReviewUserOrReadOnlyPermission
+from rest_framework_simplejwt.authentication import JWTAuthentication
 
 # class ReviewRetrieve(mixins.RetrieveModelMixin,generics.GenericAPIView):
 #     queryset = Review.objects.all()
@@ -37,15 +38,14 @@ from .permissions import AdminOrReadOnlyPermission,ReviewUserOrReadOnlyPermissio
 #     serializer_class = ReviewSerializer
 
 class RetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
-    # authentication_classes = [SessionAuthentication]
-    # permission_classes = [DjangoModelPermissions]
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAdminUser]
     queryset = Review.objects.all()
     serializer_class = ReviewSerializer
-    permission_classes = [ReviewUserOrReadOnlyPermission]
-
 class ReviewList(generics.ListAPIView):
     serializer_class = ReviewSerializer
-
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
     def get_queryset(self):
         pk = self.kwargs['pk']
         return Review.objects.filter(car=pk)
