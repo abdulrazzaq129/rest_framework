@@ -1,6 +1,6 @@
 from rest_framework.response import Response
 from rest_framework import status,viewsets
-from rest_framework.decorators import api_view,permission_classes,authentication_classes
+from rest_framework.decorators import api_view,permission_classes,authentication_classes,throttle_classes
 from rest_framework.views import APIView
 from .models import CarList, ShowRoomList,Review
 from .serializers import CarListSerializer, ShowRoomSerializer,ReviewSerializer
@@ -9,6 +9,8 @@ from rest_framework.permissions import IsAuthenticated,AllowAny,IsAdminUser,Djan
 from rest_framework import generics
 from .permissions import AdminOrReadOnlyPermission,ReviewUserOrReadOnlyPermission
 from rest_framework_simplejwt.authentication import JWTAuthentication
+from rest_framework.throttling import UserRateThrottle,AnonRateThrottle,ScopedRateThrottle
+from .throttling import ReviewDetailThrottle,ReviewlistThrottle
 
 # class ReviewRetrieve(mixins.RetrieveModelMixin,generics.GenericAPIView):
 #     queryset = Review.objects.all()
@@ -39,13 +41,16 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 
 class RetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
     authentication_classes = [TokenAuthentication]
-    permission_classes = [IsAdminUser]
+    throttle_classes = [ReviewDetailThrottle,AnonRateThrottle]
+    # permission_classes = [IsAdminUser]
     queryset = Review.objects.all()
     serializer_class = ReviewSerializer
 class ReviewList(generics.ListAPIView):
     serializer_class = ReviewSerializer
-    authentication_classes = [JWTAuthentication]
-    permission_classes = [IsAuthenticated]
+    authentication_classes = [TokenAuthentication]
+    # permission_classes = [IsAuthenticated]
+    throttle_classes = [ScopedRateThrottle]
+    throttle_scope = 'review-list'
     def get_queryset(self):
         pk = self.kwargs['pk']
         return Review.objects.filter(car=pk)
@@ -74,6 +79,7 @@ class ShowroomList(APIView):
     # permission_classes = [IsAuthenticated]
     # permission_classes = [IsAdminUser]
     authentication_classes = [SessionAuthentication]
+    
     permission_classes = [DjangoModelPermissions]
     def get(self, request):
         try:
@@ -122,8 +128,8 @@ class ShowroomDetail(APIView):
             return Response({"error": "Showroom not found."}, status=status.HTTP_204_NO_CONTENT)
 
 @api_view(['GET', 'POST'])
-@authentication_classes([SessionAuthentication])
-@permission_classes([IsAdminUser])
+@authentication_classes([TokenAuthentication])  # Combine authentication_classes
+@throttle_classes([ReviewlistThrottle,AnonRateThrottle])
 def car_list_view(request):
     if request.method == 'GET':
         cars = CarList.objects.all()
